@@ -17,12 +17,6 @@ from selenium.webdriver.firefox.options import Options
 
 app = QApplication([])
 
-# make a parameter or variable to set the refresh time of getting possesion
-# google chrome/vivaldi support...
-# support for more keyboards
-# maybe make color a class or something idk if you plan on adding more colors per team
-# more theme ideas type with second color
-
 Options = Options()
 Options.headless = True
 
@@ -67,6 +61,9 @@ key_rows = {
 def get_decimal(number):
     number = number % 1
     return number
+
+
+# maybe make color a class or something idk if you plan on adding more colors per team
 
 
 def mix_colors(home_percent_as_decimal, color1, color2):
