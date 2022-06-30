@@ -234,7 +234,7 @@ layout = [
     [sg.Button("Start"), sg.Button("Stop"), sg.Button("Exit")],
 ]
 
-window = sg.Window("Pattern 2B", layout)
+window = sg.Window("SoccerPossession RGB", layout)
 
 while True:  # Event Loops
     event, values = window.read()
