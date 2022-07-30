@@ -1,5 +1,5 @@
 # soccerpossession-rgb
-Scrapes soccer possession data with Selenium to display on RGB keyboards (using [OpenRGB](https://gitlab.com/CalcProgrammer1/OpenRGB)).
+Scrapes soccer stats with Selenium to display on RGB keyboards (using [OpenRGB](https://gitlab.com/CalcProgrammer1/OpenRGB)).
 
 Since I only have a GMMK keyboard with [OpenRGB/VIA firmware](https://github.com/gloryhzw/qmk_tool/wiki/VIA-OpenRGB-for-GMMK), I currently can't test this on other keyboards. Feel free to contribute or open up an issue if it doesn't work for yours!
 
