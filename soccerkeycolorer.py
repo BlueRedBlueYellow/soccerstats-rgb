@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from isort import file
 from openrgb import OpenRGBClient
 from openrgb.utils import DeviceType
 from openrgb.utils import RGBColor
@@ -9,6 +10,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from webdriver_manager.firefox import GeckoDriverManager
+from webdriver_manager.chrome import ChromeDriverManager
+
 import math
 import time
 import PySimpleGUI as sg
@@ -17,16 +20,16 @@ from selenium.webdriver.firefox.options import Options
 
 app = QApplication([])
 
-Options = Options()
-Options.headless = True
+# look for magic values
+settings = sg.UserSettings(path=".")
+settings.load()
+general_settings = "-general-"
 
 load_dotenv()
-gecko_service = Service(GeckoDriverManager().install())
-driver = webdriver.Firefox(options=Options, service=gecko_service)
-cli = OpenRGBClient()
-users_keyb = cli.get_devices_by_type(DeviceType.KEYBOARD)[0]
-keyb_length = len(users_keyb.colors)
 
+cli = OpenRGBClient()
+users_keyb = cli.get_devices_by_type(DeviceType.KEYBOARD)[1]
+keyb_length = len(users_keyb.colors)
 
 key_columns = {  # make a dictionary that shows what number is what key?
     0: [0, 16, 33, 50, 63, 76, 77],
@@ -61,9 +64,6 @@ key_rows = {
 def get_decimal(number):
     number = number % 1
     return number
-
-
-# maybe make color a class or something idk if you plan on adding more colors per team
 
 
 def mix_colors(home_percent_as_decimal, color1, color2):
@@ -101,10 +101,22 @@ def find_match(match):
 
 
 def get_current_home_possession():
-    match_page = WebDriverWait(driver, 20).until(
-        EC.presence_of_element_located((By.CLASS_NAME, "lr-imso-ss-wdt"))
+    all_stats = WebDriverWait(driver, 20).until(
+        EC.presence_of_all_elements_located((By.CLASS_NAME, "MzWkAb"))
     )
-    possession_class = match_page.find_elements(by=By.CLASS_NAME, value="MzWkAb")[2]
+
+    home_score = driver.find_element(
+        by=By.CSS_SELECTOR, value=".imso_mh__l-tm-sc.imso_mh__scr-it.imso-light-font"
+    ).get_attribute("innerHTML")
+
+    away_score = driver.find_element(
+        by=By.CSS_SELECTOR, value=".imso_mh__r-tm-sc.imso_mh__scr-it.imso-light-font"
+    ).get_attribute("innerHTML")
+
+    print(home_score)
+    print(away_score)
+    # document this part better
+    possession_class = all_stats[2]  # maybe compress this
     possession_stats = possession_class.find_elements(by=By.TAG_NAME, value="td")
     home_possession = int(possession_stats[0].get_attribute("innerHTML")[:2])
     driver.refresh()
@@ -136,7 +148,7 @@ def set_keyboard_team_color(
                     color_to_set_key = mixed_color_to_account_for_decimals
             color_spectrum[key] = color_to_set_key
 
-    users_keyb.set_colors(color_spectrum)
+    return color_spectrum
 
 
 print("Done.")
@@ -144,15 +156,24 @@ print("Done.")
 sg.theme("DarkAmber")
 
 
-def color_btn(key):
-    return sg.Button(key=key, button_color="red", size=(8, 4), visible=True)
+def color_btn(team, key, secondary_color):
+    if secondary_color:
+        color = settings[team]["-secondary_color-"]
+        visibility = settings[team]["-secondary_color_toggled-"]
+    else:
+        color = settings[team]["-main_color-"]
+        visibility = True
+
+    return sg.Button(
+        key=(team, key), button_color=color, size=(8, 4), visible=visibility
+    )
 
 
 def options(team):
     return sg.Checkbox(
         "Secondary Color",
-        key=(f"-TEAM{team}-", f"-{team}_TOGGLE_SECOND_COLOR-"),
-        default=True,
+        key=(team, "-TOGGLE_SECOND_COLOR-"),
+        default=settings[team]["-secondary_color_toggled-"],
         enable_events=True,
     )
 
@@ -161,13 +182,13 @@ def color_row(header, team):
     return [
         [sg.Text(header), options(team)],
         [
-            color_btn((f"-TEAM{team}-", "-MAIN_COLOR_BUTTON-")),
-            color_btn((f"-TEAM{team}-", "-SECONDARY_COLOR_BUTTON-")),
+            color_btn(team, "-MAIN_COLOR_BUTTON-", False),
+            color_btn(team, "-SECONDARY_COLOR_BUTTON-", True),
         ],
     ]
 
 
-def set_keyboard_for_match(refresh_time):  # rename function to something better
+def set_keyboard_for_match(refresh_time):
     while True:
         cycle = 0
 
@@ -175,9 +196,9 @@ def set_keyboard_for_match(refresh_time):  # rename function to something better
             print("STOPPED")
             break
 
-        for team in reversed(
-            list(teams_settings.keys())
-        ):  # STATE WHY YOU REVERSED THIS HERE
+        # we reverse so we draw the away team first,
+        # and then the home team on top of it
+        for team in reversed(list(settings.dict.keys())):
             keyboard_coverage = get_current_home_possession()
             secondary_color = None
             blend_colors = True
@@ -186,86 +207,128 @@ def set_keyboard_for_match(refresh_time):  # rename function to something better
                 keyboard_coverage = 100
                 blend_colors = False
 
-            if teams_settings[team][0]["is_secondary_color_toggled"]:
-                print(teams_settings[team][0]["is_secondary_color_toggled"])
-                print(teams_settings)
-                secondary_color = RGBColor.fromHEX(
-                    teams_settings[team][0]["secondary_color"]
+            if "team" in team.lower():
+                if settings[team]["-secondary_color_toggled-"]:
+                    print(settings[team]["-secondary_color_toggled-"])
+                    print(settings)
+                    secondary_color = RGBColor.fromHEX(
+                        settings[team]["-secondary_color-"]
+                    )
+
+                color_spectrum = set_keyboard_team_color(
+                    keyboard_coverage=keyboard_coverage,
+                    main_color=RGBColor.fromHEX(settings[team]["-main_color-"]),
+                    secondary_color=secondary_color,
+                    blend_colors=blend_colors,
                 )
+                cycle += 1
 
-            time.sleep(1)
-            set_keyboard_team_color(
-                keyboard_coverage=keyboard_coverage,
-                main_color=RGBColor.fromHEX(teams_settings[team][0]["main_color"]),
-                secondary_color=secondary_color,
-                blend_colors=blend_colors,
-            )
-            cycle += 1
-
+        users_keyb.set_colors(color_spectrum)
         time.sleep(refresh_time)
 
 
-teams_settings = {
-    "-TEAM1-": [
-        {
-            "main_color": "#FF0000",
-            "secondary_color": "#0000FF",
-            "is_secondary_color_toggled": True,
-        }
-    ],
-    "-TEAM2-": [
-        {
-            "main_color": "#FF0000",
-            "secondary_color": "#0000FF",
-            "is_secondary_color_toggled": True,
-        }
-    ],
-}
-
 layout = [
-    [color_row("Team 1 (Home)", 1)],
-    [color_row("Team 2 (Away)", 2)],
+    [
+        sg.Text("Scraper Type:"),
+        sg.Radio(
+            "Chrome",
+            "DRIVER_TYPE",
+            default=(settings[general_settings]["-driver_type-"] == "-CHROME_DRIVER-"),
+            key="-CHROME_DRIVER-",
+        ),
+        sg.Radio(
+            "Firefox",
+            "DRIVER_TYPE",
+            default=(settings[general_settings]["-driver_type-"] == "-GECKO_DRIVER-"),
+            key="-GECKO_DRIVER-",
+        ),
+    ],
+    [
+        sg.Checkbox(
+            "See scraper window",
+            key="-SEE_WINDOW-",
+            default=settings[general_settings]["-SEE_WINDOW-"],
+        )
+    ],
+    [color_row("Team 1 (Home)", "-TEAM1-")],
+    [color_row("Team 2 (Away)", "-TEAM2-")],
     [
         sg.Text("Match to search."),
-        sg.Spin([i for i in range(5, 121)], initial_value=10, key="-REFRESH_TIME-"),
+        sg.Spin(
+            [i for i in range(10, 121)],
+            initial_value=settings[general_settings]["-REFRESH_TIME-"],
+            key="-REFRESH_TIME-",
+        ),
         sg.Text("Refresh Time"),
     ],
-    [sg.Input(key="-IN-")],
+    [sg.Input(key="-IN-", default_text=settings[general_settings]["-IN-"])],
     [sg.Button("Start"), sg.Button("Stop"), sg.Button("Exit")],
 ]
 
-window = sg.Window("SoccerPossession RGB", layout)
+window = sg.Window("SoccerStats RGB", layout)
 
 while True:  # Event Loops
     event, values = window.read()
     print(event, values)
+
     if event == sg.WIN_CLOSED or event == "Exit":
         break
 
-    if event == "Start":
-        find_match(values["-IN-"])
-        window.start_thread(
-            lambda: set_keyboard_for_match(values["-REFRESH_TIME-"]),
-            "-SET_KEYBOARD_FOR_MATCH_COMPLETED-",
-        )
-
-    if event[0] is not None and "TEAM" in event[0]:  # event[0] is the team, event[1] is the element event for the team
+    # event[0] is the team, event[1] is the element event for the team
+    if "TEAM" in event[0]:
         team = event[0]
         element_event = event[1]
         if "TOGGLE_SECOND_COLOR" in element_event:
             window[(team, "-SECONDARY_COLOR_BUTTON-")].update(
                 visible=not window[(event[0], "-SECONDARY_COLOR_BUTTON-")].visible
             )
-            teams_settings[team][0]["is_secondary_color_toggled"] = not teams_settings[
-                team
-            ][0]["is_secondary_color_toggled"]
+            settings[team]["-secondary_color_toggled-"] = not settings[team][
+                "-secondary_color_toggled-"
+            ]
+
         elif "COLOR_BUTTON" in element_event:
             dialog = QColorDialog()
             color = dialog.getColor().name()
             window[(team, element_event)].update(button_color=(color, color))
-            if "-MAIN_COLOR_BUTTON-" == element_event:  # switch case for all of this?
-                teams_settings[team][0]["main_color"] = color
+            if "-MAIN_COLOR_BUTTON-" == element_event:
+                settings[team]["-main_color-"] = color
             elif "-SECONDARY_COLOR_BUTTON-" == element_event:
-                teams_settings[team][0]["secondary_color"] = color
+                settings[team]["-secondary_color-"] = color
+
+        # register key to due pysimplegui quirk
+        settings[team] = settings[team]
+
+    driver_general_settings = ["-GECKO_DRIVER-", "-CHROME_DRIVER-"]
+    other_general_settings = ["-IN-", "-SEE_WINDOW-", "-REFRESH_TIME-"]
+    if event == "Start":  # general settings
+        for setting in other_general_settings:
+            settings[general_settings][setting] = values[setting]
+
+        for setting in driver_general_settings:
+            if values[setting]:
+                if setting == "-CHROME_DRIVER-":
+                    settings[general_settings]["-driver_type-"] = setting
+                    Options = webdriver.ChromeOptions()
+                    if not values["-SEE_WINDOW-"]:
+                        Options.headless = True
+                    service = Service(ChromeDriverManager().install())
+                    driver = webdriver.Chrome(service=service, options=Options)
+
+                elif setting == "-GECKO_DRIVER-":
+                    settings[general_settings]["-driver_type-"] = setting
+                    Options = Options()
+                    if not values["-SEE_WINDOW-"]:
+                        Options.headless = True
+                    service = Service(GeckoDriverManager().install())
+                    driver = webdriver.Firefox(service=service, options=Options)
+
+        # register key to due pysimplegui quirk
+        settings[general_settings] = settings[general_settings]
+        find_match(values["-IN-"])
+        window.start_thread(
+            lambda: set_keyboard_for_match(values["-REFRESH_TIME-"]),
+            "-SET_KEYBOARD_FOR_MATCH_COMPLETED-",
+        )
+
 
 window.close()
