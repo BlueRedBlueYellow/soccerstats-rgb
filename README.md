@@ -7,3 +7,4 @@ Since I only have a GMMK keyboard with [OpenRGB/VIA firmware](https://github.com
 - Build and release as an .EXE for ease
 - Add more themes when a secondary color is used (currently just stripes)
 - Maybe add animations for when a goal is scored?
+- Clean up requirements.txt
