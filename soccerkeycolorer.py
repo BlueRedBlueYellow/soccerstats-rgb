@@ -28,7 +28,7 @@ general_settings = "-general-"
 load_dotenv()
 
 cli = OpenRGBClient()
-users_keyb = cli.get_devices_by_type(DeviceType.KEYBOARD)[1]
+users_keyb = cli.get_devices_by_type(DeviceType.KEYBOARD)[0]
 keyb_length = len(users_keyb.colors)
 
 key_columns = {  # make a dictionary that shows what number is what key?
