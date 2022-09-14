@@ -1,10 +1,19 @@
 # soccerstats-rgb
-Scrapes soccer stats with Selenium to display on RGB keyboards (using [OpenRGB](https://gitlab.com/CalcProgrammer1/OpenRGB)).
+Made in Python. Displays soccer stats for a match in the form of a fancy bar, (using [OpenRGB](https://gitlab.com/CalcProgrammer1/OpenRGB))! Works for any team that has an ongoing match/the last match a team has played. Uses Google to search. 
 
-Since I only have a GMMK keyboard with [OpenRGB/VIA firmware](https://github.com/gloryhzw/qmk_tool/wiki/VIA-OpenRGB-for-GMMK), I currently can't test this on other keyboards. Feel free to contribute or open up an issue if it doesn't work for yours!
+![Screenshot of the program's window](https://i.imgur.com/aEmOiYo.png)
 
-# TO DO LIST
-- Build and release as an .EXE for ease
-- Add more themes when a secondary color is used (currently just stripes)
-- Maybe add animations for when a goal is scored?
-- Clean up requirements.txt
+Feel free to contribute or open up an issue if it doesn't work for your keyboard, for it seriously helps!
+
+# HOW TO USE
+- [OpenRGB](https://openrgb.org/) is required, you can download it there. 
+- Click SDK Server and click "Start Server" in OpenRGB. This allows the software to connect to your keyboard. May not work for keyboards that don't have direct mode.
+- Download the latest release and boot up the EXE.
+
+## Not working! Help!
+
+- If you have multiple keyboards (or keyboard-like devices) connected, you may need to specify the keyboard or device you want to use RGB on. Edit the number of "-keyboard_number-" in the JSON to match your listed device.
+- Is the match avaliable on Google in its own box, like [this](https://i.imgur.com/WFO2Fqi.png)? 
+- Try adding the folder the EXE is in to your [PATH](https://stackoverflow.com/questions/44272416/how-to-add-a-folder-to-path-environment-variable-in-windows-10-with-screensho), though it shouldn't need this since it directly links to the scrapers.
+
+Hopefully you enjoy! 
