@@ -14,6 +14,6 @@ Feel free to contribute or open up an issue if it doesn't work for your keyboard
 
 - If you have multiple keyboards (or keyboard-like devices) connected, you may need to specify the keyboard or device you want to use RGB on. Edit the number of "-keyboard_number-" in the JSON to match your listed device.
 - Is the match avaliable on Google in its own box, like [this](https://i.imgur.com/WFO2Fqi.png)? 
-- Try adding the folder the EXE is in to your [PATH](https://stackoverflow.com/questions/44272416/how-to-add-a-folder-to-path-environment-variable-in-windows-10-with-screensho), though it shouldn't need this since it directly links to the scrapers.
+- Try adding the folder the EXE is in to your [PATH](https://stackoverflow.com/questions/44272416/how-to-add-a-folder-to-path-environment-variable-in-windows-10-with-screensho), though it shouldn't need this since it directly paths to the scrapers in the folder.
 
 Hopefully you enjoy! 
