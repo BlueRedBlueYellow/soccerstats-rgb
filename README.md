@@ -1,5 +1,5 @@
 # soccerstats-rgb
-Made in Python. Displays soccer stats for a match in the form of a fancy bar, (using [OpenRGB](https://gitlab.com/CalcProgrammer1/OpenRGB))! Works for any team that has an ongoing match/the last match a team has played. Uses Google to search. 
+Displays soccer stats for a match in the form of a fancy bar, using [OpenRGB](https://gitlab.com/CalcProgrammer1/OpenRGB) and jath03's [OpenRGB-Python](https://github.com/jath03/openrgb-python)! Works for any team that has an ongoing match/the last match a team has played. Uses Google to search. Made in Python.
 
 ![Screenshot of the program's window](https://i.imgur.com/aEmOiYo.png)
 
