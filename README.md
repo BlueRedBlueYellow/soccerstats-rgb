@@ -5,7 +5,7 @@ Displays soccer stats for a match in the form of a fancy bar, using [OpenRGB](ht
 
 Feel free to contribute or open up an issue if it doesn't work for your keyboard, for it helps.
 
-# HOW TO USE
+# How to use
 - [OpenRGB](https://openrgb.org/) is required, you can download it there. 
 - Click SDK Server and click "Start Server" in OpenRGB. This allows the software to connect to your keyboard. May not work for keyboards that don't have direct mode.
 - Download the latest release and boot up the EXE.
